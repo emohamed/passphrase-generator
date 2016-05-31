@@ -3,25 +3,10 @@ class PasswordGenerator {
 	private $words;
 	private $median_word_length;
 
-	static function median($array) {
-		$count = count($array);
-
-		$middle_index = floor($count / 2);
-
-		sort($array, SORT_NUMERIC);
-
-		$median = $array[$middle_index];
-
-		if ($count % 2 == 0) {
-			$median = ($median + $array[$middle_index - 1]) / 2;
-		}
-
-		return $median;
-	}
-
-	function __construct($words_file) {
+	function __construct($words_file)
+	{
 		$words = array_map('trim', file($words_file));
-		$this->medianWordLength = self::median(array_map('strlen', $words));
+		$this->avarage_word_length = array_sum(array_map('strlen', $words)) / count($words);
 		$this->words = $words;
 	}
 
@@ -33,7 +18,8 @@ class PasswordGenerator {
 	 * This is not going to have big impact on the security of the password, but it will satisfy some 
 	 * password strength meters
 	 */
-	function obfuscate( $passphrase ) {
+	function obfuscate( $passphrase )
+	{
 		$rules = [
 			'a' => '@',
 			's' => '$',
@@ -63,22 +49,24 @@ class PasswordGenerator {
 		return $new_passphrase;
 	}
 
-	function generate( $wordsCount = 3, $obfuscate = false ) {
+	function phrase( $words_count = 3 )
+	{
 		shuffle($this->words);
 		$attempt = 0;
 
 		do {
-			$randomWords = array_slice($this->words, $attempt * $wordsCount, $wordsCount);
-			$randomWords = array_map('ucfirst', $randomWords);
-			$passphrase = implode('', $randomWords);
+			$random_words = array_slice($this->words, $attempt * $words_count, $words_count);
+			$random_words = array_map('ucfirst', $random_words);
+			$passphrase = implode('', $random_words);
 			$attempt++;
-		} while(strlen($passphrase) > $wordsCount * $this->medianWordLength);
-
-		if ($obfuscate) {
-			$passphrase = $this->obfuscate($passphrase);
-		}
+		} while(strlen($passphrase) > $words_count * $this->avarage_word_length);
 
 		return $passphrase;
+	}
+
+	function phrase_with_special_characters($words_count = 3)
+	{
+		return $this->obfuscate( $this->phrase($words_count) );
 	}
 
 }
